@@ -102,7 +102,7 @@ export function useApplyTemplate() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       templateId,
       type,
       projectId,
@@ -110,7 +110,7 @@ export function useApplyTemplate() {
       templateId: string;
       type: TemplateType;
       projectId?: string | null;
-    }) => {
+    }): Promise<unknown> => {
       if (type === 'task') {
         return templateService.applyTaskTemplate(templateId, projectId);
       }

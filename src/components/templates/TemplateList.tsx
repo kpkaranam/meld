@@ -79,12 +79,12 @@ function TemplateRow({ template }: { template: Template }) {
 export function TemplateList() {
   const { data: templates = [], isLoading, isError } = useTemplates();
 
-  const taskTemplates = templates.filter(
+  const taskTemplates = (templates as unknown as Template[]).filter(
     (t) => t.type === 'task'
-  ) as Template[];
-  const noteTemplates = templates.filter(
+  );
+  const noteTemplates = (templates as unknown as Template[]).filter(
     (t) => t.type === 'note'
-  ) as Template[];
+  );
 
   if (isLoading) {
     return (

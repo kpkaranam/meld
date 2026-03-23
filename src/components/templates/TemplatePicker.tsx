@@ -33,7 +33,7 @@ export function TemplatePicker({
   const containerRef = useRef<HTMLDivElement>(null);
   const { data: allTemplates = [], isLoading } = useTemplates(type);
 
-  const templates = allTemplates as Template[];
+  const templates = allTemplates as unknown as Template[];
 
   // Close dropdown when clicking outside
   useEffect(() => {

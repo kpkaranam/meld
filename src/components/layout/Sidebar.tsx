@@ -26,8 +26,6 @@ import { ProjectList } from '@/components/projects/ProjectList';
 import { ProjectForm } from '@/components/projects/ProjectForm';
 import { ConfirmDialog } from '@/components/shared';
 import type { ProjectListItem } from '@/components/projects/ProjectList';
-import type { Project } from '@/types/project';
-import type { Tag as TagType } from '@/types/tag';
 
 interface NavItemProps {
   to: string;
@@ -110,13 +108,24 @@ export function Sidebar({ forceShow = false }: SidebarProps) {
   const updateProject = useUpdateProject();
   const deleteProject = useDeleteProject();
 
-  const projects: ProjectListItem[] = (rawProjects ?? []).map((p: Project) => ({
-    id: p.id,
-    name: p.name,
-    color: p.color,
-    is_archived: p.isArchived ?? false,
-  }));
-  const tags: TagType[] = (rawTags ?? []) as TagType[];
+  const projects: ProjectListItem[] = (rawProjects ?? []).map(
+    (p: {
+      id: string;
+      name: string;
+      color: string;
+      is_archived?: boolean;
+    }) => ({
+      id: p.id,
+      name: p.name,
+      color: p.color,
+      is_archived: p.is_archived ?? false,
+    })
+  );
+  const tags = (rawTags ?? []) as unknown as Array<{
+    id: string;
+    name: string;
+    color: string | null;
+  }>;
 
   // Project form state
   const [showProjectForm, setShowProjectForm] = useState(false);
