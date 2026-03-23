@@ -12,3 +12,5 @@ export { ColorPicker } from './ColorPicker';
 export { ProjectSelector } from './ProjectSelector';
 export { SyncIndicator } from './SyncIndicator';
 export { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
+export { LinkSelector } from './LinkSelector';
+export type { LinkSelectorProps } from './LinkSelector';

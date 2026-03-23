@@ -11,6 +11,12 @@ export type TaskStatus = 'todo' | 'done';
 /** Allowed task priority levels matching the database CHECK constraint. */
 export type TaskPriority = 'none' | 'low' | 'medium' | 'high';
 
+/**
+ * Recurrence patterns for repeating tasks.
+ * Null means the task does not recur.
+ */
+export type RecurrenceRule = 'daily' | 'weekly' | 'monthly' | 'weekdays' | null;
+
 export interface Task {
   id: string;
   userId: string;
@@ -28,6 +34,8 @@ export interface Task {
   sortOrder: number;
   createdAt: string;
   updatedAt: string;
+  /** Recurrence pattern. Null for non-recurring tasks. */
+  recurrenceRule: RecurrenceRule;
   /** Eagerly loaded tags. Present only when fetched with tag join. */
   tags?: Tag[];
 }
@@ -40,6 +48,7 @@ export interface CreateTaskInput {
   parentId?: string | null;
   priority?: TaskPriority;
   dueDate?: string | null;
+  recurrenceRule?: RecurrenceRule;
 }
 
 export interface UpdateTaskInput {
@@ -53,4 +62,5 @@ export interface UpdateTaskInput {
   dueDate?: string | null;
   completedAt?: string | null;
   sortOrder?: number;
+  recurrenceRule?: RecurrenceRule;
 }

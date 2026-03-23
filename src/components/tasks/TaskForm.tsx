@@ -1,4 +1,5 @@
 import { useState, FormEvent } from 'react';
+import { Repeat } from 'lucide-react';
 import { Button, Input } from '@/components/shared';
 import { cn } from '@/utils/cn';
 import { useCreateTask, useUpdateTask } from '@/hooks/useTasks';
@@ -9,6 +10,7 @@ import {
   PRIORITY_COLORS,
   type TaskPriority,
 } from '@/utils/priorities';
+import type { RecurrenceRule } from '@/types/task';
 import type { TaskRow } from './TaskItem';
 
 interface TaskFormProps {
@@ -20,6 +22,14 @@ interface TaskFormProps {
 
 const PRIORITIES: TaskPriority[] = ['none', 'low', 'medium', 'high'];
 
+const RECURRENCE_OPTIONS: { value: RecurrenceRule; label: string }[] = [
+  { value: null, label: 'None' },
+  { value: 'daily', label: 'Daily' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'monthly', label: 'Monthly' },
+  { value: 'weekdays', label: 'Weekdays' },
+];
+
 export function TaskForm({ task, projectId, onSave, onCancel }: TaskFormProps) {
   const isEditing = !!task;
 
@@ -29,6 +39,9 @@ export function TaskForm({ task, projectId, onSave, onCancel }: TaskFormProps) {
     (task?.priority as TaskPriority) ?? 'none'
   );
   const [dueDate, setDueDate] = useState(task?.due_date ?? '');
+  const [recurrenceRule, setRecurrenceRule] = useState<RecurrenceRule>(
+    (task?.recurrence_rule as RecurrenceRule) ?? null
+  );
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     task?.project_id ?? projectId ?? null
   );
@@ -64,6 +77,7 @@ export function TaskForm({ task, projectId, onSave, onCancel }: TaskFormProps) {
             priority,
             dueDate: dueDate || null,
             projectId: selectedProjectId,
+            recurrenceRule,
           },
         },
         { onSuccess: onSave }
@@ -76,6 +90,7 @@ export function TaskForm({ task, projectId, onSave, onCancel }: TaskFormProps) {
           priority,
           dueDate: dueDate || null,
           projectId: selectedProjectId,
+          recurrenceRule,
         },
         { onSuccess: onSave }
       );
@@ -172,6 +187,38 @@ export function TaskForm({ task, projectId, onSave, onCancel }: TaskFormProps) {
             'disabled:cursor-not-allowed disabled:opacity-50'
           )}
         />
+      </div>
+
+      {/* Recurrence selector */}
+      <div className="flex flex-col gap-1">
+        <label
+          htmlFor="task-recurrence"
+          className="flex items-center gap-1.5 text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
+          <Repeat className="h-3.5 w-3.5" aria-hidden="true" />
+          Repeat
+        </label>
+        <select
+          id="task-recurrence"
+          value={recurrenceRule ?? ''}
+          onChange={(e) =>
+            setRecurrenceRule((e.target.value || null) as RecurrenceRule)
+          }
+          disabled={isPending}
+          className={cn(
+            'rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900',
+            'bg-white transition-colors dark:bg-gray-900 dark:text-gray-100',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2',
+            'dark:border-gray-700 dark:focus-visible:ring-offset-gray-950',
+            'disabled:cursor-not-allowed disabled:opacity-50'
+          )}
+        >
+          {RECURRENCE_OPTIONS.map((opt) => (
+            <option key={opt.value ?? 'none'} value={opt.value ?? ''}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Project selector */}

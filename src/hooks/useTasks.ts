@@ -145,8 +145,16 @@ export function useToggleTaskStatus() {
       id: string;
       currentStatus: string;
       parentId?: string;
+      isRecurring?: boolean;
     }) => taskService.toggleTaskStatus(id, currentStatus),
     onSuccess: (data, variables) => {
+      // For recurring tasks completed (todo → done), a new task row is created.
+      // Invalidate all task queries so the new occurrence appears immediately.
+      if (variables.isRecurring && variables.currentStatus === 'todo') {
+        queryClient.invalidateQueries({ queryKey: taskKeys.all });
+        return;
+      }
+
       queryClient.setQueryData(taskKeys.detail(data.id), data);
       queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
       queryClient.invalidateQueries({ queryKey: taskKeys.today() });

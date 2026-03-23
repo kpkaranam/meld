@@ -72,6 +72,7 @@ export interface Database {
           id: string;
           user_id: string;
           project_id: string | null;
+          parent_id: string | null;
           title: string;
           description: string;
           status: string;
@@ -79,6 +80,8 @@ export interface Database {
           due_date: string | null;
           completed_at: string | null;
           sort_order: number;
+          recurrence_rule: string | null;
+          recurrence_next: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -86,15 +89,18 @@ export interface Database {
           id?: string;
           user_id: string;
           project_id?: string | null;
+          parent_id?: string | null;
           title: string;
           description?: string;
           status?: string;
           priority?: string;
           due_date?: string | null;
           sort_order?: number;
+          recurrence_rule?: string | null;
         };
         Update: {
           project_id?: string | null;
+          parent_id?: string | null;
           title?: string;
           description?: string;
           status?: string;
@@ -102,7 +108,15 @@ export interface Database {
           due_date?: string | null;
           completed_at?: string | null;
           sort_order?: number;
+          recurrence_rule?: string | null;
+          recurrence_next?: string | null;
         };
+        Relationships: [];
+      };
+      task_note_links: {
+        Row: { task_id: string; note_id: string; created_at: string };
+        Insert: { task_id: string; note_id: string };
+        Update: never;
         Relationships: [];
       };
       notes: {

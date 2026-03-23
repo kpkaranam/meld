@@ -11,6 +11,7 @@ import {
 import type { TaskPriority } from '@/utils/priorities';
 import { PriorityBadge } from './PriorityBadge';
 import { DueDateBadge } from './DueDateBadge';
+import { RecurrenceBadge } from './RecurrenceBadge';
 import { SubtaskList } from './SubtaskList';
 
 // Raw DB row shape returned by the task service (snake_case).
@@ -28,6 +29,7 @@ export interface TaskRow {
   sort_order: number;
   created_at: string;
   updated_at: string;
+  recurrence_rule: string | null;
 }
 
 interface TaskItemProps {
@@ -46,7 +48,11 @@ export function TaskItem({ task, onSelect }: TaskItemProps) {
 
   function handleCheckboxChange(e: React.ChangeEvent<HTMLInputElement>) {
     e.stopPropagation();
-    toggleStatus.mutate({ id: task.id, currentStatus: task.status });
+    toggleStatus.mutate({
+      id: task.id,
+      currentStatus: task.status,
+      isRecurring: !!task.recurrence_rule,
+    });
   }
 
   function handleDeleteClick(e: React.MouseEvent) {
@@ -152,6 +158,9 @@ export function TaskItem({ task, onSelect }: TaskItemProps) {
           <div className="flex flex-shrink-0 items-center gap-2">
             {task.priority !== 'none' && (
               <PriorityBadge priority={task.priority as TaskPriority} />
+            )}
+            {task.recurrence_rule && (
+              <RecurrenceBadge rule={task.recurrence_rule} />
             )}
             {task.due_date && <DueDateBadge dueDate={task.due_date} />}
           </div>

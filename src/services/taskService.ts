@@ -10,6 +10,36 @@
 import { supabase } from '../lib/supabase';
 import type { CreateTaskInput, UpdateTaskInput } from '../types/task';
 
+/**
+ * Calculate the next occurrence date for a recurring task.
+ *
+ * @param currentDate - ISO date string (YYYY-MM-DD) to advance from, or null to use today.
+ * @param rule - Recurrence pattern: 'daily' | 'weekly' | 'monthly' | 'weekdays'.
+ * @returns ISO date string of the next occurrence.
+ */
+function getNextDate(currentDate: string | null, rule: string): string {
+  const base = currentDate ? new Date(currentDate) : new Date();
+  switch (rule) {
+    case 'daily':
+      base.setDate(base.getDate() + 1);
+      break;
+    case 'weekly':
+      base.setDate(base.getDate() + 7);
+      break;
+    case 'monthly':
+      base.setMonth(base.getMonth() + 1);
+      break;
+    case 'weekdays':
+      do {
+        base.setDate(base.getDate() + 1);
+      } while (base.getDay() === 0 || base.getDay() === 6);
+      break;
+    default:
+      break;
+  }
+  return base.toISOString().split('T')[0];
+}
+
 export const taskService = {
   /**
    * Fetch tasks, optionally filtered by project.
@@ -130,6 +160,7 @@ export const taskService = {
         parent_id: input.parentId ?? null,
         priority: input.priority ?? 'none',
         due_date: input.dueDate ?? null,
+        recurrence_rule: input.recurrenceRule ?? null,
       })
       .select('*')
       .single();
@@ -162,6 +193,8 @@ export const taskService = {
     if (input.projectId !== undefined) updateData.project_id = input.projectId;
     if (input.parentId !== undefined) updateData.parent_id = input.parentId;
     if (input.sortOrder !== undefined) updateData.sort_order = input.sortOrder;
+    if (input.recurrenceRule !== undefined)
+      updateData.recurrence_rule = input.recurrenceRule;
 
     const { data, error } = await supabase
       .from('tasks')
@@ -184,11 +217,47 @@ export const taskService = {
 
   /**
    * Toggle a task between 'todo' and 'done' statuses.
-   * Convenience wrapper around updateTask.
    *
-   * Returns the updated row with tags eagerly loaded.
+   * For recurring tasks being completed (todo → done):
+   *   - Marks the current task as done.
+   *   - Creates a new occurrence with the next calculated due date.
+   *   - Returns the newly created task.
+   *
+   * For non-recurring tasks or un-completing (done → todo):
+   *   - Performs a simple status toggle.
+   *   - Returns the updated row.
    */
   async toggleTaskStatus(id: string, currentStatus: string) {
+    if (currentStatus === 'todo') {
+      // Fetch the full task to check for a recurrence rule.
+      const task = await this.getTaskById(id);
+
+      if (task.recurrence_rule) {
+        // Complete the current occurrence.
+        await this.updateTask(id, { status: 'done' });
+
+        // Create the next occurrence with the computed due date.
+        const nextDate = getNextDate(
+          task.due_date as string | null,
+          task.recurrence_rule as string
+        );
+        const newTask = await this.createTask({
+          title: task.title,
+          description: (task.description as string | undefined) ?? '',
+          projectId: (task.project_id as string | undefined) ?? undefined,
+          priority: task.priority as 'none' | 'low' | 'medium' | 'high',
+          dueDate: nextDate,
+          recurrenceRule: task.recurrence_rule as
+            | 'daily'
+            | 'weekly'
+            | 'monthly'
+            | 'weekdays',
+        });
+        return newTask;
+      }
+    }
+
+    // Non-recurring task or un-completing: simple toggle.
     const newStatus = currentStatus === 'todo' ? 'done' : 'todo';
     return this.updateTask(id, {
       status: newStatus as 'todo' | 'done',
