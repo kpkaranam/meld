@@ -9,6 +9,7 @@ import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { useKeySequence } from '../../hooks/useKeySequence';
 import { KeyboardShortcutsHelp } from '../shared/KeyboardShortcutsHelp';
 import { useCreateNote } from '../../hooks/useNotes';
+import { useTimerInterval } from '../../hooks/useTimerInterval';
 import toast from 'react-hot-toast';
 
 /**
@@ -31,6 +32,7 @@ import toast from 'react-hot-toast';
  */
 export function AppShell() {
   useThemeSync();
+  useTimerInterval(); // global 1-second tick for the Pomodoro timer
   const navigate = useNavigate();
   const createNote = useCreateNote();
   const [shortcutsOpen, setShortcutsOpen] = useState(false);

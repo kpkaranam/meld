@@ -8,6 +8,7 @@ import { SearchBar } from '@/components/search/SearchBar';
 import { SearchOverlay } from '@/components/search/SearchOverlay';
 import { SyncIndicator } from '@/components/shared/SyncIndicator';
 import { useUIStore } from '@/stores/uiStore';
+import { TimerWidget } from '@/components/timer/TimerWidget';
 
 export function Header() {
   const navigate = useNavigate();
@@ -38,7 +39,10 @@ export function Header() {
 
   return (
     <>
-      <header role="banner" className="flex items-center h-14 px-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0 gap-4">
+      <header
+        role="banner"
+        className="flex items-center h-14 px-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0 gap-4"
+      >
         {/* Left: hamburger (mobile only) */}
         <button
           type="button"
@@ -60,6 +64,9 @@ export function Header() {
         <div className="flex items-center gap-2">
           {/* Sync / connection status */}
           <SyncIndicator />
+
+          {/* Pomodoro timer widget */}
+          <TimerWidget />
 
           {/* Theme toggle */}
           <ThemeToggle />

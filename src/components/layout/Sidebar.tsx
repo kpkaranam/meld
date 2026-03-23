@@ -10,7 +10,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Tag,
+  LayoutDashboard,
 } from 'lucide-react';
+import { useOverdueCount } from '@/hooks/useStats';
 import { cn } from '@/utils/cn';
 import { useUIStore } from '@/stores/uiStore';
 import {
@@ -32,9 +34,11 @@ interface NavItemProps {
   icon: React.ReactNode;
   label: string;
   collapsed: boolean;
+  /** Optional numeric badge shown as a red pill (e.g. overdue count). Hidden when 0. */
+  badge?: number;
 }
 
-function NavItem({ to, icon, label, collapsed }: NavItemProps) {
+function NavItem({ to, icon, label, collapsed, badge }: NavItemProps) {
   return (
     <NavLink
       to={to}
@@ -52,7 +56,15 @@ function NavItem({ to, icon, label, collapsed }: NavItemProps) {
       aria-label={collapsed ? label : undefined}
     >
       <span className="shrink-0">{icon}</span>
-      {!collapsed && <span className="truncate">{label}</span>}
+      {!collapsed && <span className="truncate flex-1">{label}</span>}
+      {!collapsed && badge != null && badge > 0 && (
+        <span
+          className="ml-auto shrink-0 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white leading-none"
+          aria-label={`${badge} overdue`}
+        >
+          {badge > 99 ? '99+' : badge}
+        </span>
+      )}
     </NavLink>
   );
 }
@@ -89,6 +101,8 @@ export function Sidebar({ forceShow = false }: SidebarProps) {
   const { sidebarOpen, toggleSidebar } = useUIStore();
   const collapsed = !sidebarOpen;
   const navigate = useNavigate();
+
+  const { data: overdueCount } = useOverdueCount();
 
   const { data: rawProjects } = useProjects();
   const { data: rawTags } = useTags();
@@ -182,6 +196,12 @@ export function Sidebar({ forceShow = false }: SidebarProps) {
         {/* Primary navigation */}
         <nav className="flex-1 overflow-y-auto p-2 space-y-1">
           <NavItem
+            to="/dashboard"
+            icon={<LayoutDashboard size={18} />}
+            label="Dashboard"
+            collapsed={collapsed}
+          />
+          <NavItem
             to="/inbox"
             icon={<Inbox size={18} />}
             label="Inbox"
@@ -192,6 +212,7 @@ export function Sidebar({ forceShow = false }: SidebarProps) {
             icon={<Calendar size={18} />}
             label="Today"
             collapsed={collapsed}
+            badge={overdueCount}
           />
           <NavItem
             to="/calendar"

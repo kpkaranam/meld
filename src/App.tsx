@@ -10,6 +10,7 @@ import { AppShell } from './components/layout/AppShell';
 import { LoadingSpinner } from './components/shared/LoadingSpinner';
 
 // Lazy-loaded pages
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const SignupPage = lazy(() => import('./pages/SignupPage'));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
@@ -52,7 +53,8 @@ function App() {
               {/* Protected routes */}
               <Route element={<ProtectedRoute />}>
                 <Route element={<AppShell />}>
-                  <Route index element={<Navigate to="/inbox" replace />} />
+                  <Route index element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/dashboard" element={<DashboardPage />} />
                   <Route path="/inbox" element={<InboxPage />} />
                   <Route path="/today" element={<TodayPage />} />
                   <Route path="/calendar" element={<CalendarPage />} />

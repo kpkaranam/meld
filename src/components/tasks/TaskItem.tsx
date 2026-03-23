@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trash2, FolderInput, ChevronRight, Plus } from 'lucide-react';
+import { Trash2, FolderInput, ChevronRight, Plus, Timer } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { ProjectSelector } from '@/components/shared/ProjectSelector';
@@ -13,6 +13,7 @@ import { PriorityBadge } from './PriorityBadge';
 import { DueDateBadge } from './DueDateBadge';
 import { RecurrenceBadge } from './RecurrenceBadge';
 import { SubtaskList } from './SubtaskList';
+import { useTimerStore } from '@/stores/timerStore';
 
 // Raw DB row shape returned by the task service (snake_case).
 export interface TaskRow {
@@ -43,6 +44,14 @@ export function TaskItem({ task, onSelect }: TaskItemProps) {
   const toggleStatus = useToggleTaskStatus();
   const deleteTask = useDeleteTask();
   const updateTask = useUpdateTask();
+  const {
+    start: startTimer,
+    activeTaskId,
+    status: timerStatus,
+  } = useTimerStore();
+
+  const isActiveTimerTask =
+    activeTaskId === task.id && timerStatus === 'running';
 
   const isDone = task.status === 'done';
 
@@ -167,6 +176,32 @@ export function TaskItem({ task, onSelect }: TaskItemProps) {
 
           {/* Hover actions */}
           <div className="flex flex-shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+            {/* Focus: start Pomodoro timer linked to this task */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                startTimer(task.id);
+              }}
+              aria-label={
+                isActiveTimerTask
+                  ? `Timer running for "${task.title}"`
+                  : `Start focus timer for "${task.title}"`
+              }
+              className={cn(
+                'rounded p-1 transition-colors',
+                isActiveTimerTask
+                  ? 'text-indigo-500 dark:text-indigo-400'
+                  : 'text-gray-400 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-900/30 dark:hover:text-indigo-400',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500'
+              )}
+            >
+              <Timer
+                className={cn('h-4 w-4', isActiveTimerTask && 'animate-pulse')}
+                aria-hidden="true"
+              />
+            </button>
+
             {/* Add subtask */}
             <button
               type="button"
