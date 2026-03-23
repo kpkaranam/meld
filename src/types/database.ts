@@ -182,15 +182,105 @@ export interface Database {
         Relationships: [];
       };
       note_tags: {
+        Row: { note_id: string; tag_id: string };
+        Insert: { note_id: string; tag_id: string };
+        Update: never;
+        Relationships: [];
+      };
+      habits: {
         Row: {
-          note_id: string;
-          tag_id: string;
+          id: string;
+          user_id: string;
+          name: string;
+          description: string;
+          color: string;
+          frequency: string;
+          target_count: number;
+          is_archived: boolean;
+          created_at: string;
+          updated_at: string;
         };
         Insert: {
-          note_id: string;
-          tag_id: string;
+          id?: string;
+          user_id: string;
+          name: string;
+          description?: string;
+          color?: string;
+          frequency?: string;
+          target_count?: number;
+          is_archived?: boolean;
+        };
+        Update: {
+          name?: string;
+          description?: string;
+          color?: string;
+          frequency?: string;
+          target_count?: number;
+          is_archived?: boolean;
+        };
+        Relationships: [];
+      };
+      habit_completions: {
+        Row: {
+          id: string;
+          habit_id: string;
+          user_id: string;
+          completed_date: string;
+          count: number;
+          created_at: string;
+        };
+        Insert: {
+          habit_id: string;
+          user_id: string;
+          completed_date: string;
+          count?: number;
         };
         Update: never;
+        Relationships: [];
+      };
+      templates: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          type: string;
+          title: string | null;
+          description: string | null;
+          priority: string;
+          recurrence_rule: string | null;
+          content: Json;
+          content_plain: string;
+          is_default: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          type: string;
+          title?: string | null;
+          description?: string | null;
+          priority?: string;
+          recurrence_rule?: string | null;
+          content?: Json;
+          content_plain?: string;
+          is_default?: boolean;
+          sort_order?: number;
+        };
+        Update: {
+          name?: string;
+          type?: string;
+          title?: string | null;
+          description?: string | null;
+          priority?: string;
+          recurrence_rule?: string | null;
+          content?: Json;
+          content_plain?: string;
+          is_default?: boolean;
+          sort_order?: number;
+        };
         Relationships: [];
       };
     };

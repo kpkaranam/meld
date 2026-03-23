@@ -12,6 +12,8 @@ import {
 } from '@/utils/priorities';
 import type { RecurrenceRule } from '@/types/task';
 import type { TaskRow } from './TaskItem';
+import { TemplatePicker } from '@/components/templates/TemplatePicker';
+import type { Template } from '@/types/template';
 
 interface TaskFormProps {
   task?: TaskRow;
@@ -97,8 +99,27 @@ export function TaskForm({ task, projectId, onSave, onCancel }: TaskFormProps) {
     }
   }
 
+  function applyTemplate(template: Template) {
+    if (template.type !== 'task') return;
+    if (template.title) setTitle(template.title);
+    if (template.description) setDescription(template.description);
+    if (template.priority) setPriority(template.priority as TaskPriority);
+    if (template.recurrenceRule)
+      setRecurrenceRule(template.recurrenceRule as RecurrenceRule);
+  }
+
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+      {/* Title row with template picker (new tasks only) */}
+      {!isEditing && (
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            New Task
+          </span>
+          <TemplatePicker type="task" onSelect={applyTemplate} />
+        </div>
+      )}
+
       {/* Title */}
       <Input
         label="Title"

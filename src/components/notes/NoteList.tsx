@@ -2,6 +2,9 @@ import { FileText, Plus } from 'lucide-react';
 import { useNotes } from '@/hooks/useNotes';
 import { Button, EmptyState, LoadingSpinner } from '@/components/shared';
 import { NoteItem } from './NoteItem';
+import { TemplatePicker } from '@/components/templates/TemplatePicker';
+import { useApplyTemplate } from '@/hooks/useTemplates';
+import type { Template } from '@/types/template';
 
 interface NoteListProps {
   projectId?: string | null;
@@ -17,6 +20,20 @@ export function NoteList({
   onCreateNote,
 }: NoteListProps) {
   const { data: notes, isLoading, isError, error } = useNotes(projectId);
+  const applyTemplate = useApplyTemplate();
+
+  async function handleApplyTemplate(template: Template) {
+    try {
+      const note = await applyTemplate.mutateAsync({
+        templateId: template.id,
+        type: 'note',
+        projectId: projectId ?? null,
+      });
+      onSelectNote((note as unknown as { id: string }).id);
+    } catch {
+      // error handled by hook toast
+    }
+  }
 
   return (
     <div className="flex h-full flex-col">
@@ -25,16 +42,19 @@ export function NoteList({
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
           Notes
         </span>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onCreateNote}
-          aria-label="New note"
-          className="gap-1 px-2"
-        >
-          <Plus className="h-4 w-4" />
-          <span className="sr-only sm:not-sr-only">New</span>
-        </Button>
+        <div className="flex items-center gap-1">
+          <TemplatePicker type="note" onSelect={handleApplyTemplate} />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onCreateNote}
+            aria-label="New note"
+            className="gap-1 px-2"
+          >
+            <Plus className="h-4 w-4" />
+            <span className="sr-only sm:not-sr-only">New</span>
+          </Button>
+        </div>
       </div>
 
       {/* Body */}

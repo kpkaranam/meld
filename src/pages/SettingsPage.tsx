@@ -6,6 +6,7 @@ import { cn } from '../utils/cn';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { Button } from '../components/shared/Button';
 import { exportService } from '../services/exportService';
+import { TemplateList } from '../components/templates/TemplateList';
 
 type ThemeOption = {
   value: 'light' | 'dark' | 'system';
@@ -195,6 +196,24 @@ export default function SettingsPage() {
             Preparing export…
           </p>
         )}
+      </section>
+
+      {/* Templates section */}
+      <section className="mt-10" aria-labelledby="templates-heading">
+        <h2
+          id="templates-heading"
+          className="text-base font-semibold text-gray-900 dark:text-gray-100"
+        >
+          Templates
+        </h2>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Reusable templates for tasks and notes. Open any task or note and
+          click the template icon to save it as a template.
+        </p>
+
+        <div className="mt-4">
+          <TemplateList />
+        </div>
       </section>
     </div>
   );

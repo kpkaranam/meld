@@ -8,6 +8,7 @@ import {
   XCircle,
   ArrowLeft,
 } from 'lucide-react';
+import { SaveAsTemplateButton } from '@/components/templates/SaveAsTemplateButton';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/utils/cn';
 import { formatDate } from '@/utils/dates';
@@ -222,6 +223,11 @@ export function NoteDetail({
               fill={note.is_pinned ? 'currentColor' : 'none'}
             />
           </button>
+
+          <SaveAsTemplateButton
+            noteId={noteId}
+            defaultName={note.title ?? ''}
+          />
 
           <button
             type="button"

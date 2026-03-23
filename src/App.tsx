@@ -20,6 +20,8 @@ const ProjectPage = lazy(() => import('./pages/ProjectPage'));
 const TagPage = lazy(() => import('./pages/TagPage'));
 const CalendarPage = lazy(() => import('./pages/CalendarPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const GraphPage = lazy(() => import('./pages/GraphPage'));
+const HabitsPage = lazy(() => import('./pages/HabitsPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 function PageLoader() {
@@ -57,6 +59,8 @@ function App() {
                   <Route path="/projects/:id" element={<ProjectPage />} />
                   <Route path="/tags/:id" element={<TagPage />} />
                   <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/graph" element={<GraphPage />} />
+                  <Route path="/habits" element={<HabitsPage />} />
                 </Route>
               </Route>
 

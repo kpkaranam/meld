@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X, Trash2, Clock, FileText, Link2, XCircle } from 'lucide-react';
+import { SaveAsTemplateButton } from '@/components/templates/SaveAsTemplateButton';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/utils/cn';
 import { formatDate } from '@/utils/dates';
@@ -103,6 +104,11 @@ export function TaskDetail({ taskId, onClose }: TaskDetailProps) {
           <h2 className="mr-auto text-sm font-semibold text-gray-700 dark:text-gray-300 truncate">
             Task Details
           </h2>
+
+          <SaveAsTemplateButton
+            taskId={taskId}
+            defaultName={(task as unknown as { title?: string }).title ?? ''}
+          />
 
           <button
             type="button"
