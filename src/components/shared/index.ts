@@ -14,3 +14,5 @@ export { SyncIndicator } from './SyncIndicator';
 export { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
 export { LinkSelector } from './LinkSelector';
 export type { LinkSelectorProps } from './LinkSelector';
+export { FileUpload } from './FileUpload';
+export type { FileUploadProps } from './FileUpload';

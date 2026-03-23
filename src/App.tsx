@@ -4,12 +4,13 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from 'react-hot-toast';
 import { queryClient } from './lib/queryClient';
-import { AuthProvider } from './components/auth/AuthProvider';
+import { AuthProvider, useAuthContext } from './components/auth/AuthProvider';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { AppShell } from './components/layout/AppShell';
 import { LoadingSpinner } from './components/shared/LoadingSpinner';
 
 // Lazy-loaded pages
+const LandingPage = lazy(() => import('./pages/LandingPage'));
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const SignupPage = lazy(() => import('./pages/SignupPage'));
@@ -33,6 +34,28 @@ function PageLoader() {
   );
 }
 
+/**
+ * Root route: show the landing page for visitors, redirect to /dashboard
+ * for authenticated users. Waits for the auth state to resolve first.
+ */
+function RootRedirect() {
+  const { user, isLoading } = useAuthContext();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-white dark:bg-gray-950">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <LandingPage />;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -40,6 +63,9 @@ function App() {
         <BrowserRouter>
           <Suspense fallback={<PageLoader />}>
             <Routes>
+              {/* Root — landing for visitors, /dashboard for authenticated users */}
+              <Route path="/" element={<RootRedirect />} />
+
               {/* Public routes */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
@@ -53,7 +79,6 @@ function App() {
               {/* Protected routes */}
               <Route element={<ProtectedRoute />}>
                 <Route element={<AppShell />}>
-                  <Route index element={<Navigate to="/dashboard" replace />} />
                   <Route path="/dashboard" element={<DashboardPage />} />
                   <Route path="/inbox" element={<InboxPage />} />
                   <Route path="/today" element={<TodayPage />} />
