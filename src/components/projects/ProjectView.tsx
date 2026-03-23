@@ -70,6 +70,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
           noteId={selectedNoteId}
           onClose={handleCloseDetail}
           onDelete={handleCloseDetail}
+          onSelectNote={setSelectedNoteId}
         />
       );
     }

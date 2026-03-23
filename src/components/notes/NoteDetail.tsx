@@ -1,5 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Pin, Trash2, X, CheckSquare, Link2, XCircle } from 'lucide-react';
+import {
+  Pin,
+  Trash2,
+  X,
+  CheckSquare,
+  Link2,
+  XCircle,
+  ArrowLeft,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/utils/cn';
 import { formatDate } from '@/utils/dates';
@@ -30,12 +38,15 @@ import {
   useLinkTaskToNote,
   useUnlinkTaskFromNote,
 } from '@/hooks/useLinks';
+import { useBacklinks } from '@/hooks/useBacklinks';
 import type { Json } from '@/types/database';
 
 interface NoteDetailProps {
   noteId: string;
   onClose: () => void;
   onDelete: () => void;
+  /** Optional callback to navigate to a different note by id (for backlink clicks). */
+  onSelectNote?: (noteId: string) => void;
 }
 
 interface NoteData {
@@ -45,7 +56,12 @@ interface NoteData {
   contentPlain: string;
 }
 
-export function NoteDetail({ noteId, onClose, onDelete }: NoteDetailProps) {
+export function NoteDetail({
+  noteId,
+  onClose,
+  onDelete,
+  onSelectNote,
+}: NoteDetailProps) {
   const navigate = useNavigate();
   const { data: note, isLoading, isError, error } = useNote(noteId);
   const updateNote = useUpdateNote();
@@ -60,6 +76,9 @@ export function NoteDetail({ noteId, onClose, onDelete }: NoteDetailProps) {
   const { data: linkedTasks = [] } = useLinkedTasks(noteId);
   const linkTaskToNote = useLinkTaskToNote();
   const unlinkTaskFromNote = useUnlinkTaskFromNote();
+
+  // Backlinks: notes that reference this note via [[title]] syntax
+  const { data: backlinks = [] } = useBacklinks(note?.title ?? '');
 
   // Extract tags currently on this note.
   // note_tags is a nested join result; cast through unknown to avoid strict
@@ -379,6 +398,42 @@ export function NoteDetail({ noteId, onClose, onDelete }: NoteDetailProps) {
             </ul>
           )}
         </div>
+
+        {/* Backlinks section */}
+        {backlinks.length > 0 && (
+          <div className="px-6 py-3 border-t border-gray-100 dark:border-gray-800">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              Backlinks ({backlinks.length})
+            </label>
+            <ul className="space-y-1">
+              {backlinks.map((bl) => (
+                <li key={bl.id}>
+                  <button
+                    type="button"
+                    onClick={() => onSelectNote?.(bl.id)}
+                    disabled={!onSelectNote}
+                    aria-label={`Open note: ${bl.title}`}
+                    className={cn(
+                      'flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm',
+                      'border border-gray-200 dark:border-gray-800',
+                      'bg-gray-50 dark:bg-gray-900',
+                      'text-gray-700 dark:text-gray-300',
+                      onSelectNote
+                        ? 'hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400 transition-colors'
+                        : 'cursor-default'
+                    )}
+                  >
+                    <ArrowLeft
+                      className="h-3.5 w-3.5 flex-shrink-0 text-indigo-400 dark:text-indigo-500 rotate-180"
+                      aria-hidden="true"
+                    />
+                    <span className="truncate">{bl.title}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Footer: timestamps */}
         <div className="flex items-center justify-between border-t border-gray-100 px-6 py-2 dark:border-gray-800">

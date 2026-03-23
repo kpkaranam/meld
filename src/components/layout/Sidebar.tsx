@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Inbox,
   Calendar,
+  CalendarDays,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -91,14 +92,25 @@ export function Sidebar({ forceShow = false }: SidebarProps) {
   const updateProject = useUpdateProject();
   const deleteProject = useDeleteProject();
 
-  const projects: ProjectListItem[] = (rawProjects ?? []).map((p: any) => ({
-    id: p.id,
-    name: p.name,
-    color: p.color,
-    is_archived: p.is_archived ?? false,
-  }));
+  const projects: ProjectListItem[] = (rawProjects ?? []).map(
+    (p: {
+      id: string;
+      name: string;
+      color: string;
+      is_archived?: boolean;
+    }) => ({
+      id: p.id,
+      name: p.name,
+      color: p.color,
+      is_archived: p.is_archived ?? false,
+    })
+  );
   const tags: Array<{ id: string; name: string; color: string | null }> =
-    (rawTags ?? []) as unknown as Array<{ id: string; name: string; color: string | null }>;
+    (rawTags ?? []) as unknown as Array<{
+      id: string;
+      name: string;
+      color: string | null;
+    }>;
 
   // Project form state
   const [showProjectForm, setShowProjectForm] = useState(false);
@@ -187,6 +199,12 @@ export function Sidebar({ forceShow = false }: SidebarProps) {
             to="/today"
             icon={<Calendar size={18} />}
             label="Today"
+            collapsed={collapsed}
+          />
+          <NavItem
+            to="/calendar"
+            icon={<CalendarDays size={18} />}
+            label="Calendar"
             collapsed={collapsed}
           />
 

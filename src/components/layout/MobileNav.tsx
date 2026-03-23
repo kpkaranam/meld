@@ -1,5 +1,11 @@
 import { NavLink } from 'react-router-dom';
-import { Inbox, Calendar, FolderOpen, Settings } from 'lucide-react';
+import {
+  Inbox,
+  Calendar,
+  CalendarDays,
+  FolderOpen,
+  Settings,
+} from 'lucide-react';
 import { cn } from '@/utils/cn';
 
 interface MobileNavItemProps {
@@ -41,6 +47,11 @@ export function MobileNav() {
     >
       <MobileNavItem to="/inbox" icon={<Inbox size={20} />} label="Inbox" />
       <MobileNavItem to="/today" icon={<Calendar size={20} />} label="Today" />
+      <MobileNavItem
+        to="/calendar"
+        icon={<CalendarDays size={20} />}
+        label="Calendar"
+      />
       <MobileNavItem
         to="/projects"
         icon={<FolderOpen size={20} />}

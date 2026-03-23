@@ -18,6 +18,7 @@ const InboxPage = lazy(() => import('./pages/InboxPage'));
 const TodayPage = lazy(() => import('./pages/TodayPage'));
 const ProjectPage = lazy(() => import('./pages/ProjectPage'));
 const TagPage = lazy(() => import('./pages/TagPage'));
+const CalendarPage = lazy(() => import('./pages/CalendarPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
@@ -52,6 +53,7 @@ function App() {
                   <Route index element={<Navigate to="/inbox" replace />} />
                   <Route path="/inbox" element={<InboxPage />} />
                   <Route path="/today" element={<TodayPage />} />
+                  <Route path="/calendar" element={<CalendarPage />} />
                   <Route path="/projects/:id" element={<ProjectPage />} />
                   <Route path="/tags/:id" element={<TagPage />} />
                   <Route path="/settings" element={<SettingsPage />} />

@@ -59,6 +59,7 @@ export default function InboxPage() {
           noteId={selectedNoteId}
           onClose={() => setSelectedNoteId(null)}
           onDelete={() => setSelectedNoteId(null)}
+          onSelectNote={handleSelectNote}
         />
       );
     }
