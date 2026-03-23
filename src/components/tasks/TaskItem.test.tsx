@@ -17,6 +17,15 @@ vi.mock('@/hooks/useTasks', () => ({
     mutate: vi.fn(),
     isPending: false,
   }),
+  useSubtasks: () => ({
+    data: [],
+    isLoading: false,
+    error: null,
+  }),
+  useCreateSubtask: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
 }));
 
 vi.mock('@/hooks/useProjects', () => ({
@@ -41,6 +50,7 @@ const baseTask: TaskRow = {
   id: 'task-1',
   user_id: 'user-1',
   project_id: null,
+  parent_id: null,
   title: 'Test task',
   description: '',
   status: 'todo',

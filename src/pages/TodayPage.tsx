@@ -82,7 +82,9 @@ export default function TodayPage() {
 
           {!isLoading && !isError && tasks && tasks.length > 0 && (
             <div role="table" aria-label="Today's tasks">
-              {tasks.map((task) => (
+              {(
+                tasks as unknown as import('@/components/tasks/TaskItem').TaskRow[]
+              ).map((task) => (
                 <TaskItem
                   key={task.id}
                   task={task}

@@ -1,8 +1,24 @@
 import { useState } from 'react';
 import { CheckSquare } from 'lucide-react';
-import { useTasks } from '@/hooks/useTasks';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { useTasks, useUpdateTask } from '@/hooks/useTasks';
 import { LoadingSpinner, EmptyState } from '@/components/shared';
-import { TaskItem, type TaskRow } from './TaskItem';
+import { type TaskRow } from './TaskItem';
+import { SortableTaskItem } from './SortableTaskItem';
 import { QuickAddTask } from './QuickAddTask';
 
 interface TaskListProps {
@@ -17,9 +33,46 @@ export function TaskList({
   showCompleted: showCompletedProp,
 }: TaskListProps) {
   const { data: tasks, isLoading, error } = useTasks(projectId);
+  const updateTask = useUpdateTask();
+
   // Allow external control of showCompleted, falling back to internal state
   const [internalShowCompleted, setInternalShowCompleted] = useState(false);
   const showCompleted = showCompletedProp ?? internalShowCompleted;
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const allTasks = (tasks ?? []) as TaskRow[];
+    const activeTasks = allTasks.filter((t) => t.status !== 'done');
+    const completedTasks = allTasks.filter((t) => t.status === 'done');
+    const displayTasks = showCompleted ? allTasks : activeTasks;
+
+    const oldIndex = displayTasks.findIndex((t) => t.id === active.id);
+    const newIndex = displayTasks.findIndex((t) => t.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(displayTasks, oldIndex, newIndex);
+
+    // Re-build full ordered list: reordered active/display tasks + completed tasks at the end
+    const fullReordered = showCompleted
+      ? reordered
+      : [...reordered, ...completedTasks];
+
+    // Persist sort_order for each task whose position changed
+    fullReordered.forEach((task, index) => {
+      if (task.sort_order !== index) {
+        updateTask.mutate({ id: task.id, input: { sortOrder: index } });
+      }
+    });
+  }
 
   if (isLoading) {
     return (
@@ -48,6 +101,7 @@ export function TaskList({
   const activeTasks = allTasks.filter((t) => t.status !== 'done');
   const completedTasks = allTasks.filter((t) => t.status === 'done');
   const displayTasks = showCompleted ? allTasks : activeTasks;
+  const taskIds = displayTasks.map((t) => t.id);
 
   return (
     <div className="flex flex-col">
@@ -65,11 +119,26 @@ export function TaskList({
           description="No tasks yet. Create one above!"
         />
       ) : (
-        <div role="table" aria-label="Task list">
-          {displayTasks.map((task) => (
-            <TaskItem key={task.id} task={task} onSelect={onSelectTask} />
-          ))}
-        </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={taskIds}
+            strategy={verticalListSortingStrategy}
+          >
+            <div role="table" aria-label="Task list">
+              {displayTasks.map((task) => (
+                <SortableTaskItem
+                  key={task.id}
+                  task={task}
+                  onSelect={onSelectTask}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       )}
 
       {/* Toggle completed */}

@@ -25,6 +25,8 @@ export const taskService = {
     let query = supabase
       .from('tasks')
       .select('*')
+      // Only top-level tasks; subtasks are fetched separately via getSubtasks
+      .is('parent_id', null)
       .order('sort_order', { ascending: true });
 
     if (projectId === null) {
@@ -33,11 +35,40 @@ export const taskService = {
     } else if (projectId !== undefined) {
       query = query.eq('project_id', projectId);
     }
-    // projectId === undefined → no filter, return all tasks
+    // projectId === undefined → no filter, return all top-level tasks
 
     const { data, error } = await query;
     if (error) {
-      console.error('[taskService.getTasks] Supabase error:', error.message, error.details, error.hint, error.code);
+      console.error(
+        '[taskService.getTasks] Supabase error:',
+        error.message,
+        error.details,
+        error.hint,
+        error.code
+      );
+      throw error;
+    }
+    return data;
+  },
+
+  /**
+   * Fetch all subtasks for a given parent task id.
+   * Results are ordered by sort_order ascending.
+   */
+  async getSubtasks(parentId: string) {
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('parent_id', parentId)
+      .order('sort_order', { ascending: true });
+    if (error) {
+      console.error(
+        '[taskService.getSubtasks] Supabase error:',
+        error.message,
+        error.details,
+        error.hint,
+        error.code
+      );
       throw error;
     }
     return data;
@@ -96,6 +127,7 @@ export const taskService = {
         title: input.title,
         description: input.description ?? '',
         project_id: input.projectId ?? null,
+        parent_id: input.parentId ?? null,
         priority: input.priority ?? 'none',
         due_date: input.dueDate ?? null,
       })
@@ -128,6 +160,7 @@ export const taskService = {
     if (input.priority !== undefined) updateData.priority = input.priority;
     if (input.dueDate !== undefined) updateData.due_date = input.dueDate;
     if (input.projectId !== undefined) updateData.project_id = input.projectId;
+    if (input.parentId !== undefined) updateData.parent_id = input.parentId;
     if (input.sortOrder !== undefined) updateData.sort_order = input.sortOrder;
 
     const { data, error } = await supabase

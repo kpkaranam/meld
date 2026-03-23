@@ -11,3 +11,4 @@ export { SaveIndicator } from './SaveIndicator';
 export { ColorPicker } from './ColorPicker';
 export { ProjectSelector } from './ProjectSelector';
 export { SyncIndicator } from './SyncIndicator';
+export { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';

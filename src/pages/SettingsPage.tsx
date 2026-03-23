@@ -1,7 +1,11 @@
-import { Sun, Moon, Monitor, Check } from 'lucide-react';
+import { useState } from 'react';
+import { Sun, Moon, Monitor, Check, Download } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useThemeStore } from '../stores/themeStore';
 import { cn } from '../utils/cn';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { Button } from '../components/shared/Button';
+import { exportService } from '../services/exportService';
 
 type ThemeOption = {
   value: 'light' | 'dark' | 'system';
@@ -34,6 +38,35 @@ const themeOptions: ThemeOption[] = [
 export default function SettingsPage() {
   useDocumentTitle('Settings');
   const { theme, setTheme } = useThemeStore();
+  const [isExporting, setIsExporting] = useState(false);
+
+  async function handleExportMarkdown() {
+    setIsExporting(true);
+    try {
+      const { markdown } = await exportService.exportAllData();
+      exportService.downloadFile(markdown, 'meld-export.md', 'text/markdown');
+      toast.success('Markdown export downloaded');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Export failed';
+      toast.error(message);
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
+  async function handleExportJSON() {
+    setIsExporting(true);
+    try {
+      const { json } = await exportService.exportAllData();
+      exportService.downloadFile(json, 'meld-export.json', 'application/json');
+      toast.success('JSON export downloaded');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Export failed';
+      toast.error(message);
+    } finally {
+      setIsExporting(false);
+    }
+  }
 
   return (
     <div className="p-6 max-w-2xl">
@@ -114,6 +147,54 @@ export default function SettingsPage() {
             );
           })}
         </div>
+      </section>
+
+      {/* Export section */}
+      <section className="mt-10" aria-labelledby="export-heading">
+        <h2
+          id="export-heading"
+          className="text-base font-semibold text-gray-900 dark:text-gray-100"
+        >
+          Export Data
+        </h2>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Download a full copy of your tasks, notes, projects, and tags.
+          Markdown is human-readable; JSON is suitable for backup or external
+          processing.
+        </p>
+
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Button
+            variant="secondary"
+            onClick={handleExportMarkdown}
+            isLoading={isExporting}
+            disabled={isExporting}
+            aria-label="Export all data as Markdown"
+          >
+            <Download className="h-4 w-4" aria-hidden="true" />
+            Export as Markdown
+          </Button>
+
+          <Button
+            variant="secondary"
+            onClick={handleExportJSON}
+            isLoading={isExporting}
+            disabled={isExporting}
+            aria-label="Export all data as JSON"
+          >
+            <Download className="h-4 w-4" aria-hidden="true" />
+            Export as JSON
+          </Button>
+        </div>
+
+        {isExporting && (
+          <p
+            className="mt-2 text-sm text-gray-500 dark:text-gray-400"
+            aria-live="polite"
+          >
+            Preparing export…
+          </p>
+        )}
       </section>
     </div>
   );

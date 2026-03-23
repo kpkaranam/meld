@@ -3,10 +3,17 @@ import { X, Trash2, Clock } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { formatDate } from '@/utils/dates';
 import { useTask, useDeleteTask } from '@/hooks/useTasks';
-import { useTags, useCreateTag, useAddTagToTask, useRemoveTagFromTask } from '@/hooks/useTags';
+import {
+  useTags,
+  useCreateTag,
+  useAddTagToTask,
+  useRemoveTagFromTask,
+} from '@/hooks/useTags';
 import { Button, ConfirmDialog, LoadingSpinner } from '@/components/shared';
 import { TaskForm } from './TaskForm';
+import type { TaskRow } from './TaskItem';
 import { TagSelector } from '@/components/tags/TagSelector';
+import { SubtaskList } from './SubtaskList';
 
 interface TaskDetailProps {
   taskId: string;
@@ -22,21 +29,32 @@ export function TaskDetail({ taskId, onClose }: TaskDetailProps) {
   const removeTagFromTask = useRemoveTagFromTask();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // Extract tags currently on this task
-  const taskTags: Array<{ id: string; name: string; color: string | null }> =
-    ((task as any)?.task_tags ?? []).map((tt: any) => tt.tags).filter(Boolean);
+  // Extract tags currently on this task.
+  // task_tags is a nested join result; cast through unknown to avoid strict typing on Supabase generics.
+  type TaskTagRow = {
+    tags: { id: string; name: string; color: string | null } | null;
+  };
+  type TagShape = { id: string; name: string; color: string | null };
 
-  const availableTags: Array<{ id: string; name: string; color: string | null }> =
-    ((allTags ?? []) as any[]).filter(
-      (t) => !taskTags.some((tt) => tt.id === t.id)
-    );
+  const taskTags: TagShape[] = (
+    (task as unknown as { task_tags?: TaskTagRow[] })?.task_tags ?? []
+  )
+    .map((tt) => tt.tags)
+    .filter((t): t is TagShape => t !== null);
+
+  const availableTags: TagShape[] = (
+    (allTags ?? []) as unknown as TagShape[]
+  ).filter((t) => !taskTags.some((tt) => tt.id === t.id));
 
   function handleConfirmDelete() {
-    deleteTask.mutate(taskId, {
-      onSuccess: () => {
-        onClose();
-      },
-    });
+    deleteTask.mutate(
+      { id: taskId },
+      {
+        onSuccess: () => {
+          onClose();
+        },
+      }
+    );
   }
 
   if (isLoading) {
@@ -100,7 +118,11 @@ export function TaskDetail({ taskId, onClose }: TaskDetailProps) {
 
         {/* Form area */}
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-          <TaskForm task={task} onSave={onClose} onCancel={onClose} />
+          <TaskForm
+            task={task as unknown as TaskRow}
+            onSave={onClose}
+            onCancel={onClose}
+          />
 
           {/* Tags section */}
           <div>
@@ -111,15 +133,36 @@ export function TaskDetail({ taskId, onClose }: TaskDetailProps) {
               selectedTags={taskTags}
               availableTags={availableTags}
               onAddTag={(tag) => addTagToTask.mutate({ taskId, tagId: tag.id })}
-              onRemoveTag={(tagId) => removeTagFromTask.mutate({ taskId, tagId })}
+              onRemoveTag={(tagId) =>
+                removeTagFromTask.mutate({ taskId, tagId })
+              }
               onCreateTag={(name) => {
-                createTag.mutate({ name }, {
-                  onSuccess: (newTag: any) => {
-                    addTagToTask.mutate({ taskId, tagId: newTag.id });
-                  },
-                });
+                createTag.mutate(
+                  { name },
+                  {
+                    onSuccess: (newTag) => {
+                      addTagToTask.mutate({
+                        taskId,
+                        tagId: (newTag as { id: string }).id,
+                      });
+                    },
+                  }
+                );
               }}
             />
+          </div>
+
+          {/* Subtasks section */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              Subtasks
+            </label>
+            <div className="rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
+              <SubtaskList
+                parentId={taskId}
+                projectId={(task as unknown as TaskRow).project_id ?? null}
+              />
+            </div>
           </div>
         </div>
 

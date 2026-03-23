@@ -15,6 +15,8 @@ export interface Task {
   id: string;
   userId: string;
   projectId: string | null;
+  /** Parent task id for subtasks. Null for top-level tasks. */
+  parentId: string | null;
   title: string;
   description: string;
   status: TaskStatus;
@@ -34,6 +36,8 @@ export interface CreateTaskInput {
   title: string;
   description?: string;
   projectId?: string | null;
+  /** Set to create a subtask under the given parent task. */
+  parentId?: string | null;
   priority?: TaskPriority;
   dueDate?: string | null;
 }
@@ -42,6 +46,8 @@ export interface UpdateTaskInput {
   title?: string;
   description?: string;
   projectId?: string | null;
+  /** Move to a different parent (or promote to top-level with null). */
+  parentId?: string | null;
   status?: TaskStatus;
   priority?: TaskPriority;
   dueDate?: string | null;

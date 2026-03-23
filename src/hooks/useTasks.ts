@@ -11,6 +11,8 @@ export const taskKeys = {
     [...taskKeys.lists(), projectId] as const,
   today: () => [...taskKeys.all, 'today'] as const,
   detail: (id: string) => [...taskKeys.all, 'detail', id] as const,
+  subtasks: (parentId: string) =>
+    [...taskKeys.all, 'subtasks', parentId] as const,
 };
 
 export function useTasks(projectId?: string | null) {
@@ -32,6 +34,41 @@ export function useTask(id: string) {
     queryKey: taskKeys.detail(id),
     queryFn: () => taskService.getTaskById(id),
     enabled: !!id,
+  });
+}
+
+export function useSubtasks(parentId: string) {
+  return useQuery({
+    queryKey: taskKeys.subtasks(parentId),
+    queryFn: () => taskService.getSubtasks(parentId),
+    enabled: !!parentId,
+  });
+}
+
+export function useCreateSubtask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      parentId,
+      input,
+    }: {
+      parentId: string;
+      input: CreateTaskInput;
+    }) => taskService.createTask({ ...input, parentId }),
+    onSuccess: (_data, variables) => {
+      // Invalidate subtask list for this parent
+      queryClient.invalidateQueries({
+        queryKey: taskKeys.subtasks(variables.parentId),
+      });
+      // Also refresh the parent's detail so subtask count stays accurate
+      queryClient.invalidateQueries({
+        queryKey: taskKeys.detail(variables.parentId),
+      });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to create subtask');
+    },
   });
 }
 
@@ -78,10 +115,17 @@ export function useDeleteTask() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => taskService.deleteTask(id),
-    onSuccess: () => {
+    mutationFn: ({ id }: { id: string; parentId?: string }) =>
+      taskService.deleteTask(id),
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
       queryClient.invalidateQueries({ queryKey: taskKeys.today() });
+      // If it was a subtask, also refresh the parent's subtask list
+      if (variables.parentId) {
+        queryClient.invalidateQueries({
+          queryKey: taskKeys.subtasks(variables.parentId),
+        });
+      }
       toast.success('Task deleted');
     },
     onError: (error: Error) => {
@@ -100,11 +144,18 @@ export function useToggleTaskStatus() {
     }: {
       id: string;
       currentStatus: string;
+      parentId?: string;
     }) => taskService.toggleTaskStatus(id, currentStatus),
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       queryClient.setQueryData(taskKeys.detail(data.id), data);
       queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
       queryClient.invalidateQueries({ queryKey: taskKeys.today() });
+      // Refresh parent's subtask list so completion state reflects
+      if (variables.parentId) {
+        queryClient.invalidateQueries({
+          queryKey: taskKeys.subtasks(variables.parentId),
+        });
+      }
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to update task');
